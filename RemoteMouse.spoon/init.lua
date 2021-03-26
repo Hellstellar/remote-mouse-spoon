@@ -24,10 +24,27 @@ obj.port = "4444"
 
 local websocketServerUrl =  "http://localhost:" .. obj.port .. "/?clientName=Hammerspoon"
 
+
+local function getCoordinates(message)
+    coordinates = {}
+    for coordinate in message:gmatch("-?%w+") do
+        table.insert(coordinates, coordinate)
+    end
+    return coordinates
+end
+
 local function connection(status, message)
     if status == "open" then hs.alert.show('Connected to remote mouse') end
     if status == "fail" then hs.alert.show('Connection to remote mouse failed') end
-    if message ~= nil then hs.alert.show(message) end
+
+    if message ~= nil then
+        local coordinates = getCoordinates(message)
+        local currentPosition = hs.mouse.absolutePosition()
+        local finalPositionX = currentPosition.x + tonumber(coordinates[1])
+        local finalPositionY = currentPosition.y + tonumber(coordinates[2])
+        local mousePosition = hs.geometry.point(finalPositionX, finalPositionY)
+        hs.mouse.absolutePosition(mousePosition)
+    end
 end
 
 --- RemoteMouse:start()
